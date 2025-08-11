@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IAM Project - Role-Based Interface with Anomaly Detection</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+        .role-admin {
+            background: #dc3545;
+            color: white;
+        }
+        .role-user {
+            background: #28a745;
+            color: white;
+        }
+        .login-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .user-info {
+            background: #e2f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .detection-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .keycloak-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: 1px solid #ffeaa7;
+        }
+        .hidden {
+            display: none;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .dashboard-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .dashboard-card h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .alerts-section {
+            background: #fff5f5;
+            border: 2px solid #fed7d7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .alert-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+        }
+        .alert-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        .alert-high {
+            border-left-color: #dc3545;
+        }
+        .alert-medium {
+            border-left-color: #ffc107;
+        }
+        .alert-low {
+            border-left-color: #28a745;
+        }
+        .alert-severity {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .severity-high {
+            background: #dc3545;
+            color: white;
+        }
+        .severity-medium {
+            background: #ffc107;
+            color: #212529;
+        }
+        .severity-low {
+            background: #28a745;
+            color: white;
+        }
+        .alert-timestamp {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .alert-details {
+            font-size: 13px;
+            color: #495057;
+            margin-top: 8px;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .admin-panel {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .user-panel {
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .panel-title {
+            margin: 0 0 15px 0;
+            font-size: 1.5em;
+        }
+        .refresh-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+        .tab-button:hover {
+            color: #495057;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .no-alerts {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .session-status {
+            background: #e8f5e8;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .security-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .security-good {
+            background: #d4edda;
+            color: #155724;
+        }
+        .security-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .security-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 IAM Authentication System - Role-Based Interface</h1>
+        
+        <!-- Setup Section -->
+        <div id="setup-section">
+            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3>⚙️ Initial Setup</h3>
+                <p>Configure Keycloak with test users (run once):</p>
+                <button onclick="setupKeycloak()" class="btn">Setup Keycloak</button>
+            </div>
+        </div>
+        
+        <!-- Login Form -->
+        <div id="login-section">
+            <div class="login-form">
+                <h2>🔑 Login via Keycloak</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" required>
+                        <small>Test users: <strong>admin</strong> (Admin role), user1, testuser, demo (User role)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" required>
+                        <small>Passwords: password123, mypass, test123, demo</small>
+                    </div>
+                    <button type="submit" class="btn">Login with Keycloak</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- User Dashboard -->
+        <div id="dashboard-section" class="hidden">
+            <!-- Role-based Header -->
+            <div id="admin-header" class="admin-panel hidden">
+                <h2 class="panel-title">👨‍💼 Administrator Dashboard</h2>
+                <p>Full system access • Monitor all users • Manage security alerts</p>
+            </div>
+            
+            <div id="user-header" class="user-panel hidden">
+                <h2 class="panel-title">👤 User Dashboard</h2>
+                <p>Personal session • Security status • Account alerts</p>
+            </div>
+
+            <div class="user-info">
+                <h2>✅ Welcome, <span id="logged-user"></span>!<span id="role-badge" class="role-badge"></span></h2>
+                <p>Session started: <span id="session-time"></span></p>
+                <p>🔒 Authenticated via Keycloak <span id="security-indicator" class="security-indicator"></span></p>
+                <button onclick="logout()" class="btn btn-danger">Logout</button>
+                <button onclick="getUserSessions()" class="btn">View Sessions</button>
+                <button onclick="refreshAlerts()" class="btn btn-secondary">🔄 Refresh Alerts <span id="refresh-indicator" class="hidden refresh-indicator"></span></button>
+            </div>
+
+            <!-- Alerts Section -->
+            <div id="alerts-section" class="alerts-section">
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" onclick="showTab('active-alerts')">🚨 Active Alerts (<span id="active-count">0</span>)</button>
+                        <button class="tab-button" onclick="showTab('alert-stats')" id="stats-tab" style="display: none;">📊 Statistics</button>
+                        <button class="tab-button" onclick="showTab('all-alerts')" id="all-alerts-tab" style="display: none;">📋 All Alerts</button>
+                    </div>
+                    
+                    <div id="active-alerts" class="tab-content active">
+                        <h3>🚨 Security Alerts</h3>
+                        <div id="alerts-list">
+                            <div class="no-alerts">Loading alerts...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="alert-stats" class="tab-content">
+                        <h3>📊 Alert Statistics</h3>
+                        <div id="stats-container">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="total-alerts-stat">0</div>
+                                    <div class="stat-label">Total Alerts</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="active-alerts-stat">0</div>
+                                    <div class="stat-label">Active Alerts</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="resolved-alerts-stat">0</div>
+                                    <div class="stat-label">Resolved</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="high-severity-stat">0</div>
+                                    <div class="stat-label">High Severity</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="all-alerts" class="tab-content">
+                        <h3>📋 All System Alerts</h3>
+                        <div id="all-alerts-list">
+                            <div class="no-alerts">Loading all alerts...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Status for Users -->
+            <div id="user-session-status" class="session-status hidden">
+                <h3>🛡️ Your Session Security Status</h3>
+                <div id="session-security-info">
+                    <p><strong>Current Status:</strong> <span id="session-status-text">Secure</span></p>
+                    <p><strong>Alerts for your account:</strong> <span id="user-alerts-count">0</span></p>
+                    <p><strong>Last activity:</strong> <span id="last-activity">Just now</span></p>
+                </div>
+            </div>
+
+            <!-- Keycloak Info -->
+            <div class="keycloak-info">
+                <h3>🔐 Keycloak User Info</h3>
+                <div id="keycloak-user-data">Loading...</div>
+            </div>
+
+            <!-- Detection Info -->
+            <div class="detection-info">
+                <h3>🌐 Session Information</h3>
+                <p><strong>IP Address:</strong> <span id="user-ip">Detecting...</span></p>
+                <p><strong>Location:</strong> <span id="user-location">Detecting...</span></p>
+                <p><strong>Browser:</strong> <span id="user-browser"></span></p>
+                <p><strong>OS:</strong> <span id="user-os"></span></p>
+                <p><strong>Timezone:</strong> <span id="user-timezone"></span></p>
+            </div>
+
+            <!-- Sessions List -->
+            <div id="sessions-section" class="hidden">
+                <h3>📋 Active Keycloak Sessions</h3>
+                <div id="sessions-list"></div>
+            </div>
+
+            <!-- Activity Generation -->
+            <div style="margin-top: 20px;">
+                <button onclick="generateLog()" class="btn">📝 Generate Activity Log</button>
+                <button onclick="sendToKafka()" class="btn btn-success">🚀 Send to Kafka</button>
+                <button onclick="simulateAnomaly()" class="btn btn-warning">⚠️ Simulate Anomaly</button>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status-messages"></div>
+
+        <!-- Generated Log Display -->
+        <div id="log-display" class="hidden">
+            <h3>📋 Generated Log</h3>
+            <pre id="log-content"></pre>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentRole = null;
+        let userInfo = {};
+        let currentLog = null;
+        let keycloakUserInfo = null;
+        let alertsRefreshInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            detectUserInfo();
+            setupLoginForm();
+        });
+
+        function setupLoginForm() {
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                login();
+            });
+        }
+
+        async function setupKeycloak() {
+            try {
+                showStatus('Setting up Keycloak...', 'info');
+                
+                const response = await fetch('/api/setup-keycloak', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus('Keycloak setup completed successfully!', 'success');
+                    document.getElementById('setup-section').style.display = 'none';
+                } else {
+                    showStatus('Keycloak setup failed: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Setup error:', error);
+                showStatus('Error setting up Keycloak: ' + error.message, 'error');
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showStatus('Please enter both username and password', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Authenticating via Keycloak...', 'info');
+                
+                const loginData = {
+                    username: username,
+                    password: password,
+                    location: userInfo.location || 'unknown',
+                    browser: userInfo.browser,
+                    os: userInfo.os,
+                    timezone: userInfo.timezone
+                };
+
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentUser = username;
+                    currentRole = result.role;
+                    keycloakUserInfo = result.keycloak_user_info;
+                    
+                    document.getElementById('logged-user').textContent = username;
+                    document.getElementById('session-time').textContent = new Date().toLocaleString();
+                    
+                    // Set role badge
+                    const roleBadge = document.getElementById('role-badge');
+                    roleBadge.textContent = result.role;
+                    roleBadge.className = `role-badge role-${result.role}`;
+                    
+                    // Show appropriate header
+                    if (result.role === 'admin') {
+                        document.getElementById('admin-header').classList.remove('hidden');
+                        document.getElementById('user-header').classList.add('hidden');
+                        document.getElementById('stats-tab').style.display = 'block';
+                        document.getElementById('all-alerts-tab').style.display = 'block';
+                    } else {
+                        document.getElementById('user-header').classList.remove('hidden');
+                        document.getElementById('admin-header').classList.add('hidden');
+                        document.getElementById('user-session-status').classList.remove('hidden');
+                    }
+                    
+                    displayKeycloakUserInfo(keycloakUserInfo);
+                    
+                    // Hide login, show dashboard
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('dashboard-section').classList.remove('hidden');
+                    document.getElementById('setup-section').style.display = 'none';
+                    
+                    showStatus(`Login successful via Keycloak! ${result.alerts_count} alerts detected.`, 'success');
+                    updateSecurityIndicator(result.alerts_count);
+                    
+                    detectIPAndLocation();
+                    refreshAlerts();
+                    
+                    // Auto-refresh alerts every 30 seconds
+                    alertsRefreshInterval = setInterval(refreshAlerts, 30000);
+                    
+                } else {
+                    showStatus('Login failed: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showStatus('Error during login: ' + error.message, 'error');
+            }
+        }
+
+        async function logout() {
+            try {
+                if (alertsRefreshInterval) {
+                    clearInterval(alertsRefreshInterval);
+                }
+                
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentUser = null;
+                    currentRole = null;
+                    currentLog = null;
+                    keycloakUserInfo = null;
+                    
+                    // Reset form
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                    
+                    // Reset interface
+                    document.getElementById('login-section').classList.remove('hidden');
+                    document.getElementById('dashboard-section').classList.add('hidden');
+                    document.getElementById('log-display').classList.add('hidden');
+                    document.getElementById('sessions-section').classList.add('hidden');
+                    document.getElementById('admin-header').classList.add('hidden');
+                    document.getElementById('user-header').classList.add('hidden');
+                    document.getElementById('user-session-status').classList.add('hidden');
+                    
+                    showStatus('Logged out successfully from Keycloak', 'success');
+                } else {
+                    showStatus('Logout error: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                showStatus('Error during logout: ' + error.message, 'error');
+            }
+        }
+
+        function updateSecurityIndicator(alertsCount) {
+            const indicator = document.getElementById('security-indicator');
+            if (alertsCount === 0) {
+                indicator.textContent = '✅ Secure';
+                indicator.className = 'security-indicator security-good';
+            } else if (alertsCount < 3) {
+                indicator.textContent = '⚠️ Monitoring';
+                indicator.className = 'security-indicator security-warning';
+            } else {
+                indicator.textContent = '🚨 Alert';
+                indicator.className = 'security-indicator security-danger';
+            }
+        }
+
+        async function refreshAlerts() {
+            if (!currentUser) return;
+            
+            document.getElementById('refresh-indicator').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/api/alerts');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayAlerts(result.alerts, result.role);
+                    document.getElementById('active-count').textContent = 
+                        result.alerts.filter(alert => !alert.resolved).length;
+                    
+                    if (result.role === 'admin') {
+                        await loadAlertStats();
+                    } else {
+                        updateUserSessionStatus(result.alerts);
+                    }
+                } else {
+                    showStatus('Error loading alerts: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error refreshing alerts:', error);
+                showStatus('Error refreshing alerts: ' + error.message, 'error');
+            } finally {
+                document.getElementById('refresh-indicator').classList.add('hidden');
+            }
+        }
+
+        function displayAlerts(alerts, role) {
+            const activeAlerts = alerts.filter(alert => !alert.resolved);
+            const alertsList = document.getElementById('alerts-list');
+            const allAlertsList = document.getElementById('all-alerts-list');
+            
+            if (activeAlerts.length === 0) {
+                alertsList.innerHTML = '<div class="no-alerts">🎉 No active security alerts</div>';
+            } else {
+                alertsList.innerHTML = activeAlerts.map(alert => formatAlert(alert, role)).join('');
+            }
+            
+            // For admin, show all alerts in the "All Alerts" tab
+            if (role === 'admin' && allAlertsList) {
+                if (alerts.length === 0) {
+                    allAlertsList.innerHTML = '<div class="no-alerts">No alerts in system</div>';
+                } else {
+                    allAlertsList.innerHTML = alerts.map(alert => formatAlert(alert, role)).join('');
+                }
+            }
+        }
+
+        function formatAlert(alert, role) {
+            const severityClass = `alert-${alert.severity}`;
+            const severityBadgeClass = `severity-${alert.severity}`;
+            const timestamp = new Date(alert.timestamp).toLocaleString();
+            
+            const resolveButton = (role === 'admin' && !alert.resolved) ? 
+                `<button onclick="resolveAlert(${alert.id})" class="btn btn-success" style="font-size: 12px; padding: 5px 10px;">✅ Resolve</button>` : '';
+            
+            const resolvedInfo = alert.resolved ? 
+                `<div style="margin-top: 10px; font-size: 12px; color: #28a745;">
+                    ✅ Resolved by ${alert.resolved_by} at ${new Date(alert.resolved_at).toLocaleString()}
+                </div>` : '';
+            
+            return `
+                <div class="alert-item ${severityClass}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <span class="alert-severity ${severityBadgeClass}">${alert.severity}</span>
+                                <span style="margin-left: 10px; font-weight: bold;">${alert.message}</span>
+                            </div>
+                            <div class="alert-details">${alert.details}</div>
+                            <div class="alert-timestamp">
+                                👤 ${alert.user_id} • 📅 ${timestamp} • 🏷️ ${alert.alert_type}
+                            </div>
+                            ${resolvedInfo}
+                        </div>
+                        <div style="margin-left: 15px;">
+                            ${resolveButton}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function resolveAlert(alertId) {
+            try {
+                const response = await fetch(`/api/alerts/${alertId}/resolve`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus('Alert resolved successfully', 'success');
+                    refreshAlerts();
+                } else {
+                    showStatus('Error resolving alert: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error resolving alert:', error);
+                showStatus('Error resolving alert: ' + error.message, 'error');
+            }
+        }
+
+        async function loadAlertStats() {
+            try {
+                const response = await fetch('/api/alerts/stats');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const stats = result.stats;
+                    document.getElementById('total-alerts-stat').textContent = stats.total_alerts;
+                    document.getElementById('active-alerts-stat').textContent = stats.active_alerts;
+                    document.getElementById('resolved-alerts-stat').textContent = stats.resolved_alerts;
+                    document.getElementById('high-severity-stat').textContent = stats.severity_breakdown.high || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function updateUserSessionStatus(alerts) {
+            const userAlerts = alerts.filter(alert => !alert.resolved);
+            document.getElementById('user-alerts-count').textContent = userAlerts.length;
+            
+            const statusText = document.getElementById('session-status-text');
+            if (userAlerts.length === 0) {
+                statusText.textContent = 'Secure ✅';
+                statusText.style.color = '#28a745';
+            } else if (userAlerts.length < 3) {
+                statusText.textContent = 'Under Monitoring ⚠️';
+                statusText.style.color = '#ffc107';
+            } else {
+                statusText.textContent = 'Security Alert 🚨';
+                statusText.style.color = '#dc3545';
+            }
+            
+            document.getElementById('last-activity').textContent = new Date().toLocaleString();
+        }
+
+        function showTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab and activate button
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function displayKeycloakUserInfo(userInfo) {
+            const container = document.getElementById('keycloak-user-data');
+            
+            if (userInfo) {
+                container.innerHTML = `
+                    <p><strong>User ID:</strong> ${userInfo.sub}</p>
+                    <p><strong>Username:</strong> ${userInfo.preferred_username}</p>
+                    <p><strong>Email:</strong> ${userInfo.email || 'N/A'}</p>
+                    <p><strong>First Name:</strong> ${userInfo.given_name || 'N/A'}</p>
+                    <p><strong>Last Name:</strong> ${userInfo.family_name || 'N/A'}</p>
+                    <p><strong>Email Verified:</strong> ${userInfo.email_verified || false}</p>
+                `;
+            } else {
+                container.innerHTML = '<p>No Keycloak user data available</p>';
+            }
+        }
+
+        async function getUserSessions() {
+            try {
+                const response = await fetch('/api/user-sessions');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayUserSessions(result.sessions);
+                    document.getElementById('sessions-section').classList.remove('hidden');
+                } else {
+                    showStatus('Error getting sessions: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Sessions error:', error);
+                showStatus('Error getting sessions: ' + error.message, 'error');
+            }
+        }
+
+        function displayUserSessions(sessions) {
+            const container = document.getElementById('sessions-list');
+            
+            if (sessions && sessions.length > 0) {
+                container.innerHTML = sessions.map(session => `
+                    <div class="alert-item">
+                        <p><strong>Session ID:</strong> ${session.id}</p>
+                        <p><strong>Started:</strong> ${new Date(session.start).toLocaleString()}</p>
+                        <p><strong>Last Access:</strong> ${new Date(session.lastAccess).toLocaleString()}</p>
+                        <p><strong>IP Address:</strong> ${session.ipAddress}</p>
+                        <p><strong>Clients:</strong> ${Object.keys(session.clients || {}).join(', ')}</p>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="alert-item">No active sessions found</div>';
+            }
+        }
+
+        function detectUserInfo() {
+            const userAgent = navigator.userAgent;
+            let browser = 'Unknown';
+            let os = 'Unknown';
+
+            // Browser detection
+            if (userAgent.includes('Chrome')) browser = 'Chrome';
+            else if (userAgent.includes('Firefox')) browser = 'Firefox';
+            else if (userAgent.includes('Safari')) browser = 'Safari';
+            else if (userAgent.includes('Edge')) browser = 'Edge';
+
+            // OS detection
+            if (userAgent.includes('Windows')) os = 'Windows';
+            else if (userAgent.includes('Mac')) os = 'macOS';
+            else if (userAgent.includes('Linux')) os = 'Linux';
+            else if (userAgent.includes('Android')) os = 'Android';
+            else if (userAgent.includes('iOS')) os = 'iOS';
+
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+            userInfo = {
+                browser: browser,
+                os: os,
+                timezone: timezone,
+                userAgent: userAgent,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                timestamp: new Date().toISOString()
+            };
+
+            document.getElementById('user-browser').textContent = browser;
+            document.getElementById('user-os').textContent = os;
+            document.getElementById('user-timezone').textContent = timezone;
+        }
+
+        async function detectIPAndLocation() {
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const userIP = ipData.ip;
+                
+                document.getElementById('user-ip').textContent = userIP;
+                userInfo.ip = userIP;
+
+                const locationResponse = await fetch(`https://ipapi.co/${userIP}/json/`);
+                const locationData = await locationResponse.json();
+                
+                const location = `${locationData.city}, ${locationData.region}, ${locationData.country_name}`;
+                document.getElementById('user-location').textContent = location;
+                
+                userInfo.location = location;
+                userInfo.country = locationData.country_name;
+                userInfo.city = locationData.city;
+                userInfo.region = locationData.region;
+                userInfo.coordinates = `${locationData.latitude}, ${locationData.longitude}`;
+                
+            } catch (error) {
+                console.error('Error detecting IP/location:', error);
+                document.getElementById('user-ip').textContent = 'Detection failed';
+                document.getElementById('user-location').textContent = 'Detection failed';
+                userInfo.ip = 'unknown';
+                userInfo.location = 'unknown';
+            }
+        }
+
+        function generateLog() {
+            if (!currentUser) {
+                showStatus('Please login first', 'error');
+                return;
+            }
+
+            currentLog = {
+                userId: currentUser,
+                ip: userInfo.ip || 'unknown',
+                location: userInfo.location || 'unknown',
+                browser: userInfo.browser,
+                os: userInfo.os,
+                timezone: userInfo.timezone,
+                timestamp: new Date().toISOString(),
+                time: new Date().toLocaleTimeString(),
+                sessionId: 'sess_' + Math.random().toString(36).substr(2, 9),
+                action: 'user_activity',
+                coordinates: userInfo.coordinates || 'unknown',
+                userAgent: userInfo.userAgent,
+                language: userInfo.language,
+                screen: userInfo.screen,
+                keycloak_user_id: keycloakUserInfo ? keycloakUserInfo.sub : null,
+                keycloak_username: keycloakUserInfo ? keycloakUserInfo.preferred_username : null
+            };
+
+            document.getElementById('log-content').textContent = JSON.stringify(currentLog, null, 2);
+            document.getElementById('log-display').classList.remove('hidden');
+            
+            showStatus('Activity log generated successfully!', 'success');
+        }
+
+        async function sendToKafka() {
+            if (!currentLog) {
+                showStatus('Please generate a log first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(currentLog)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showStatus(`Log sent successfully! ${result.alerts_detected} anomalies detected.`, 'success');
+                    // Refresh alerts to show new ones
+                    setTimeout(refreshAlerts, 1000);
+                } else {
+                    showStatus('Failed to send log: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error sending to Kafka:', error);
+                showStatus('Error sending to Kafka: ' + error.message, 'error');
+            }
+        }
+
+        async function simulateAnomaly() {
+            if (!currentUser) {
+                showStatus('Please login first', 'error');
+                return;
+            }
+
+            const anomalyTypes = [
+                {
+                    action: 'login_failure',
+                    description: 'Failed login attempt'
+                },
+                {
+                    action: 'suspicious_activity', 
+                    description: 'Unusual activity pattern',
+                    location: 'Unknown Location'
+                },
+                {
+                    action: 'rapid_requests',
+                    description: 'Multiple rapid requests'
+                }
+            ];
+
+            const selectedAnomaly = anomalyTypes[Math.floor(Math.random() * anomalyTypes.length)];
+
+            const anomalyLog = {
+                userId: currentUser,
+                ip: selectedAnomaly.action === 'suspicious_activity' ? '192.168.1.' + Math.floor(Math.random() * 255) : userInfo.ip,
+                location: selectedAnomaly.location || userInfo.location || 'unknown',
+                browser: userInfo.browser,
+                os: userInfo.os,
+                timezone: userInfo.timezone,
+                timestamp: new Date().toISOString(),
+                time: new Date().toLocaleTimeString(),
+                sessionId: 'sess_' + Math.random().toString(36).substr(2, 9),
+                action: selectedAnomaly.action,
+                coordinates: userInfo.coordinates || 'unknown',
+                userAgent: userInfo.userAgent,
+                language: userInfo.language,
+                screen: userInfo.screen,
+                keycloak_user_id: keycloakUserInfo ? keycloakUserInfo.sub : null,
+                keycloak_username: keycloakUserInfo ? keycloakUserInfo.preferred_username : null,
+                anomaly_simulation: true,
+                description: selectedAnomaly.description
+            };
+
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(anomalyLog)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showStatus(`Anomaly simulated: ${selectedAnomaly.description}. ${result.alerts_detected} alerts generated.`, 'warning');
+                    // Refresh alerts to show new ones
+                    setTimeout(refreshAlerts, 1000);
+                } else {
+                    showStatus('Failed to simulate anomaly: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error simulating anomaly:', error);
+                showStatus('Error simulating anomaly: ' + error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-messages');
+            const statusElement = document.createElement('div');
+            statusElement.className = `status ${type}`;
+            statusElement.textContent = message;
+            
+            statusDiv.appendChild(statusElement);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                statusElement.remove();
+            }, 5000);
+        }
+
+        // Auto-update timestamp every minute
+        setInterval(() => {
+            if (currentUser) {
+                userInfo.timestamp = new Date().toISOString();
+            }
+        }, 60000);
+    </script>
+</body>
+</html>
